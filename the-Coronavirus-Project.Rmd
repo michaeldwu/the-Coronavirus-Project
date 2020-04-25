@@ -20,12 +20,9 @@ library(lubridate)
 
 ### the Coronavirus Project.
 
-### New Updates for the Sixth Milestone
-Have some big updates for this milestone. With the new record levels of unemployment coming out of the US Department of Labor, I figured it would be really interesting to explore how the unemployment claims filed across state vary based on the total number of confirmed cases. I presume that some of the states in the Midwest that have been slower to shut down from the coronavirus will have less claims of unemployment, and I feel like it'd be interesting to see if there's any general correlation. I have the data from the US Department of Labor found and downloaded, which wasn't exactly the easiest task. I'll be working on cleaning and tidying data this next week.
 
-I feel like I've made pretty good progress on the final project today, just finding a direction and second dataset feels huge to me!
 
-```{r loading_data, echo=FALSE, results='hide'}
+```{r loading_data, echo=FALSE}
 # Loading the untidy version of the coronavirus data forked from the Johns Hopkins' GitHub repo
 # Specifying column types to avoid any forms of errors
 
@@ -43,7 +40,7 @@ unemployment_data_by_state <- read_xlsx("raw-data/DOL-unemployment-rawdata/weekl
 ```
 
 
-```{r tidying-data, echo=FALSE, results='hide'}
+```{r tidying-data, echo=FALSE}
 # Tidying the untidy_covidata tibble using pivot_longer
 # Pivoting so that dates will now be row data entries instead of columns as they were originally
 # Removing extraneous or unecessary columns so that the tibble will be smaller, these are huge data tables
@@ -66,7 +63,7 @@ covidata_us <- untidy_covidata_us %>%
 ### Preliminary Plots for the Coronavirus Outbreak
 
 
-```{r plot-NY-covidata, fig.align='center'}
+```{r plot-NY-covidata, fig.align='center', echo = FALSE}
 # Find the most affected states in the United States
 # Would use log scales like in China's case below, but the case reporting is so erratic
 # that the graphs for log scales on the y-axis looks so poor.
@@ -159,38 +156,104 @@ ggplot(covidata_us_total, aes(x = date, y = total_cases)) +
   
 ```
 
-```{r scatter-plot-unemployment-covid, echo=FALSE}
+```{r scatter-plot-unemployment-covid, echo=FALSE, fig.align='center'}
 
 joined_data <- covidata_us %>%
   inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
-  filter(cases > 100) %>%
-  mutate(log_cases = log(cases), log_initial_claims = log(initial_claims))
+  filter(cases > 0) %>%
+  group_by(province_state, date, week, initial_claims) %>%
+  summarize(total_cases = sum(cases)) %>%
+  mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
 
-ggplot(joined_data, aes(x = log_cases, y = log_initial_claims, color = date)) +
+ggplot(joined_data, aes(x = total_cases, y = initial_claims, color = date)) +
   geom_point() +
-  geom_smooth() +
   theme_classic() +
   labs(
     x = "Coronavirus Cases",
-    y = "Unemployment",
-    color = "Year",
-    title = "Unemployment versus Confirmed Coronavirus Cases",
-    subtitle = "Appears to have only a weak positive correlation near the far right tail extreme of Covid-19 Cases"
+    y = "Weekly Unemployment Claims",
+    color = "Month",
+    title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
+  )
+
+ggplot(joined_data, aes(x = log_total_cases, y = log_initial_claims, color = date)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  theme_classic() +
+  labs(
+    x = "Natural Log of Coronavirus Cases",
+    y = "Natural Log of Weekly Unemployment Claims",
+    color = "Month",
+    title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
   )
 ```
 
-```{r correlating-data, echo=FALSE}
+```{r correlating-data, echo=FALSE, fig.align='center'}
 # First, completing the correlation summary
 
-covidata_us %>%
-  inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
-  mutate(log_cases = log(cases), log_initial_claims = log(initial_claims)) %>%
-  filter(date > "2020-02-02") %>%
+joined_data %>%
+  filter(date > "2020-03-01") %>%
   group_by(date) %>%
-  summarise(correlation = cor(cases, initial_claims)) %>%
+  summarise(correlation = cor(log_total_cases, log_initial_claims)) %>%
   gt() %>%
   tab_header(
-    title = "Correlation between Coronavirus Cases and Unemployment",
+    title = "Coronavirus Case Count on Weekly Unemployment Claims",
+    subtitle = "Natural Log Values, Arranged by Date"
+  ) %>%
+  cols_label(
+    date = "Date",
+    correlation = "Correlation Coefficient"
+  )
+```
+
+```{r scatter-plot-2, echo=FALSE, fig.align='center'}
+
+joined_data2 <- covidata_us %>%
+  inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
+  filter(cases > 0) %>%
+  group_by(province_state, date, week, initial_claims) %>%
+  summarize(total_cases = sum(cases)) %>%
+  mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
+
+joined_data2$deriv_cases = c(diff(joined_data2$total_cases) / diff(joined_data2$week), NA)
+
+joined_data2 <- joined_data2 %>%
+  mutate(log_deriv_cases = log(deriv_cases))
+
+ggplot(joined_data2, aes(x = deriv_cases, y = initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "First Derivative of Coronavirus Cases (Effective Growth Rate)",
+    y = "Weekly Unemployment Claims",
+    color = "Month",
+    title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
+  )
+
+ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "Natural Log of First Derivative of Coronavirus Cases (Effective Growth Rate)",
+    y = "Natural Log Weekly Unemployment Claims",
+    color = "Month",
+    title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
+  )
+```
+
+```{r correlating-data-2, echo=FALSE, fig.align='center'}
+# First, completing the correlation summary
+
+joined_data2 %>%
+  filter(date > "2020-03-01" & date < "2020-04-18") %>%
+  group_by(date) %>%
+  summarise(correlation = cor(log_deriv_cases, log_initial_claims)) %>%
+  gt() %>%
+  tab_header(
+    title = "Coronavirus Growth Rate on Weekly Unemployment Claims",
     subtitle = "Arranged by Date"
   ) %>%
   cols_label(
