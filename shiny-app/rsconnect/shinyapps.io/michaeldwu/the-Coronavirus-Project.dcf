@@ -1,0 +1,12 @@
+name: the-Coronavirus-Project
+title: the-Coronavirus-Project
+username:
+account: michaeldwu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2186078
+bundleId: 3064912
+url: https://michaeldwu.shinyapps.io/the-Coronavirus-Project/
+when: 1587855223.36646
+asMultiple: FALSE
+asStatic: FALSE
