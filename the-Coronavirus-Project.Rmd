@@ -82,7 +82,7 @@ new_york_covidata <- covidata_us %>%
 new_york_covidata$deriv_cases = c(diff(new_york_covidata$total_cases) / diff(new_york_covidata$days), NA)
 
 new_york_unemployment <- unemployment_data_by_state %>%
-  filter(state == "NY")
+  filter(province_state == "New York")
 
 ggplot(new_york_unemployment, aes(x = date, y = initial_claims)) +
   geom_line() +
@@ -175,7 +175,7 @@ ggplot(joined_data, aes(x = log_cases, y = log_initial_claims, color = date)) +
     y = "Unemployment",
     color = "Year",
     title = "Unemployment versus Confirmed Coronavirus Cases",
-    subtitle = "Appears to have a positive correlation"
+    subtitle = "Appears to have only a weak positive correlation near the far right tail extreme of Covid-19 Cases"
   )
 ```
 
