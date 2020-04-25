@@ -1,0 +1,209 @@
+---
+title: "Final Project Milestone 8"
+author: "Michael Wu"
+date: "4/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(reprex)
+library(janitor)
+library(gt)
+library(readr)
+library(readxl)
+library(rvest)
+library(ggthemes)
+library(lubridate)
+```
+
+### the Coronavirus Project.
+
+### New Updates for the Sixth Milestone
+Have some big updates for this milestone. With the new record levels of unemployment coming out of the US Department of Labor, I figured it would be really interesting to explore how the unemployment claims filed across state vary based on the total number of confirmed cases. I presume that some of the states in the Midwest that have been slower to shut down from the coronavirus will have less claims of unemployment, and I feel like it'd be interesting to see if there's any general correlation. I have the data from the US Department of Labor found and downloaded, which wasn't exactly the easiest task. I'll be working on cleaning and tidying data this next week.
+
+I feel like I've made pretty good progress on the final project today, just finding a direction and second dataset feels huge to me!
+
+```{r loading_data, echo=FALSE, results='hide'}
+# Loading the untidy version of the coronavirus data forked from the Johns Hopkins' GitHub repo
+# Specifying column types to avoid any forms of errors
+
+untidy_covidata_global <- read.csv('raw-data/JH-covid19-rawdata/time_series_covid19_confirmed_global.csv') %>%
+  clean_names()
+
+untidy_covidata_us <- read.csv('raw-data/JH-covid19-rawdata/time_series_covid19_confirmed_US.csv') %>%
+  clean_names()
+
+unemployment_data_by_state <- read_xlsx("raw-data/DOL-unemployment-rawdata/weekly_unemployment_claims.xlsx") %>%
+  clean_names() %>%
+  mutate(date = mdy(as.character(date))) %>%
+  subset(date > "2020-01-05")
+
+```
+
+
+```{r tidying-data, echo=FALSE, results='hide'}
+# Tidying the untidy_covidata tibble using pivot_longer
+# Pivoting so that dates will now be row data entries instead of columns as they were originally
+# Removing extraneous or unecessary columns so that the tibble will be smaller, these are huge data tables
+
+covidata_us <- untidy_covidata_us %>%
+  pivot_longer(
+    cols = starts_with("x"),
+    names_to = "date",
+    names_prefix = "x",
+    values_to = "cases",
+    values_drop_na = TRUE
+  ) %>%
+  select(-uid, -iso2, -iso3, -code3, -fips, -lat, -long, -combined_key) %>%
+  rename(county = admin2, country = country_region) %>%
+  mutate(date = mdy(as.character(date))) 
+```
+
+
+
+### Preliminary Plots for the Coronavirus Outbreak
+
+
+```{r plot-NY-covidata, fig.align='center'}
+# Find the most affected states in the United States
+# Would use log scales like in China's case below, but the case reporting is so erratic
+# that the graphs for log scales on the y-axis looks so poor.
+# NEED TO: do some basic data cleanup because the graph displays all the county-wide 
+# confirmed case counts instead of the totals for the state
+
+new_york_covidata <- covidata_us %>%
+  filter(province_state == "New York") %>%
+  group_by(date) %>%
+  summarize(total_cases = sum(cases)) %>%
+  mutate(days = 1:93)
+
+new_york_covidata$deriv_cases = c(diff(new_york_covidata$total_cases) / diff(new_york_covidata$days), NA)
+
+new_york_unemployment <- unemployment_data_by_state %>%
+  filter(state == "NY")
+
+ggplot(new_york_unemployment, aes(x = date, y = initial_claims)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.5) +
+  labs(title = "Weekly Unemployment Filings in New York State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+
+ggplot(new_york_covidata, aes(x = date, y = deriv_cases)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.3) +
+  labs(title = "Growth of Covid-19 Cases in New York State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "First Derivative of Case Count") +
+  theme_classic()
+
+ggplot(new_york_covidata, aes(x = date, y = total_cases)) +
+  geom_line() +
+  labs(title = "Total Covid-19 Cases in New York State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "First Derivative of Case Count") +
+  theme_classic()
+  
+```
+
+
+```{r plot-US-covidata, fig.align='center', echo = FALSE}
+# Find the most affected states in the United States
+# Would use log scales like in China's case below, but the case reporting is so erratic
+# that the graphs for log scales on the y-axis looks so poor.
+# NEED TO: do some basic data cleanup because the graph displays all the county-wide 
+# confirmed case counts instead of the totals for the state
+
+covidata_us_total <- covidata_us %>%
+  group_by(date) %>%
+  summarize(total_cases = sum(cases)) %>%
+  mutate(days = 1:93)
+
+covidata_us_total$deriv_cases = c(diff(covidata_us_total$total_cases) / diff(covidata_us_total$days), NA)
+
+national_unemployment <- unemployment_data_by_state %>%
+  group_by(date) %>%
+  summarize(total_claims = sum(initial_claims))
+
+ggplot(national_unemployment, aes(x = date, y = total_claims)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.4) +
+  labs(title = "National Unemployment Filings",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "Unemployment Claims") +
+  theme_classic()
+
+ggplot(covidata_us_total, aes(x = date, y = deriv_cases)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.3) +
+  labs(title = "Growth Curve of National Covid-19 Cases",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "First Derivative of Case Count") +
+  theme_classic()
+
+ggplot(covidata_us_total, aes(x = date, y = total_cases)) +
+  geom_line() +
+  labs(title = "Total Covid-19 Cases in US",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "Total Cases") +
+  theme_classic()
+  
+```
+
+```{r scatter-plot-unemployment-covid, echo=FALSE}
+
+joined_data <- covidata_us %>%
+  inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
+  filter(cases > 100) %>%
+  mutate(log_cases = log(cases), log_initial_claims = log(initial_claims))
+
+ggplot(joined_data, aes(x = log_cases, y = log_initial_claims, color = date)) +
+  geom_point() +
+  geom_smooth() +
+  theme_classic() +
+  labs(
+    x = "Coronavirus Cases",
+    y = "Unemployment",
+    color = "Year",
+    title = "Unemployment versus Confirmed Coronavirus Cases",
+    subtitle = "Appears to have a positive correlation"
+  )
+```
+
+```{r correlating-data, echo=FALSE}
+# First, completing the correlation summary
+
+covidata_us %>%
+  inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
+  mutate(log_cases = log(cases), log_initial_claims = log(initial_claims)) %>%
+  filter(date > "2020-02-02") %>%
+  group_by(date) %>%
+  summarise(correlation = cor(cases, initial_claims)) %>%
+  gt() %>%
+  tab_header(
+    title = "Correlation between Coronavirus Cases and Unemployment",
+    subtitle = "Arranged by Date"
+  ) %>%
+  cols_label(
+    date = "Date",
+    correlation = "Correlation Coefficient"
+  )
+```
+
+
+$~$
+
+### Shiny App Link
+
+https://michaeldwu.shinyapps.io/finalproject_shiny/
+
+$~$
