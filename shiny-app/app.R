@@ -35,6 +35,7 @@ ui <- fluidPage(navbarPage("the Coronavirus Project",
                            
                            tabPanel("National",
                                     mainPanel(
+                                        imageOutput("banner_image", width = "100%", height = "100%"),
                                         h4("National Unemployment Claims versus Coronavirus Cases"),
                                         h4(" "), 
                                         plotOutput("plot_scatter"), 
@@ -75,7 +76,24 @@ ui <- fluidPage(navbarPage("the Coronavirus Project",
 # Creates ggplots with the data objects stored in the RDS files
 # --------------------------------------------------------------
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+    
+    # Coronavirus Banner Image
+    
+    output$banner_image <- renderImage({
+        # Read myImage's width and height. These are reactive values, so this
+        # expression will re-run whenever they change.
+        screen_width  <- session$clientData$output_myImage_width
+        screen_height <- session$clientData$output_myImage_height
+       
+        picture_ratio <- 7.5/19.762
+         
+        list(src = './images/corona-banner.png', 
+             height = screen_width * 0.7 * picture_ratio,
+             width = screen_width * 0.7,
+             style = "display: center; margin-left: auto; margin-right: auto;")}, 
+        deleteFile = FALSE
+    )
 
     # Scatter Plots
     
