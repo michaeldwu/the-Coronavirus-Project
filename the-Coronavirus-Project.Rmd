@@ -263,6 +263,21 @@ joined_data2 %>%
 ```
 
 
+```{r saving-rds-files, echo=FALSE}
+# Saving all my previous objects into RDS files that I will use in the shiny app
+
+saveRDS(new_york_unemployment, file = "shiny-app/rdsObjects/new_york_unemployment.rds")
+saveRDS(new_york_covidata, file = "shiny-app/rdsObjects/new_york_covidata.rds")
+saveRDS(national_unemployment, file = "shiny-app/rdsObjects/national_unemployment.rds")
+saveRDS(covidata_us_total, file = "shiny-app/rdsObjects/covidata_us_total.rds")
+saveRDS(joined_data, file = "shiny-app/rdsObjects/joined_data.rds")
+saveRDS(joined_data2, file = "shiny-app/rdsObjects/joined_data2.rds")
+
+
+```
+
+
+
 $~$
 
 ### Shiny App Link

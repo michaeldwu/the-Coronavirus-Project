@@ -1,117 +1,61 @@
-
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-
+# -------------------------------------------
+# Shiny Web Application Created by Michael Wu
+# Gov 1005 Final Project
+# -------------------------------------------
 
 # Loading the necessary libraries
 
 library(shiny)
 library(tidyverse)
 library(shinythemes)
-library(janitor)
-library(gt)
-library(readr)
-library(readxl)
 library(ggthemes)
-library(lubridate)
 
-# Cleaning Data ---------
+# ------------------------------------------------------------
+# Loading the RDS data objects that were saved in my rmd files
+# This is proper etiquette, DO NOT just copy your R code over
+# ------------------------------------------------------------
 
-untidy_covidata_us <- read.csv('time_series_covid19_confirmed_US.csv') %>%
-    clean_names()
+new_york_unemployment <- readRDS("rdsObjects/new_york_unemployment.rds")
+new_york_covidata <- readRDS("rdsObjects/new_york_covidata.rds")
+national_unemployment <- readRDS("rdsObjects/national_unemployment.rds")
+covidata_us_total <- readRDS("rdsObjects/covidata_us_total.rds")
+joined_data <- readRDS("rdsObjects/joined_data.rds")
+joined_data2 <- readRDS("rdsObjects/joined_data2.rds")
 
-covidata_us <- untidy_covidata_us %>%
-    pivot_longer(
-        cols = starts_with("x"),
-        names_to = "date",
-        names_prefix = "x",
-        values_to = "cases",
-        values_drop_na = TRUE
-    ) %>%
-    select(-uid, -iso2, -iso3, -code3, -fips, -lat, -long, -combined_key) %>%
-    rename(county = admin2, country = country_region) %>%
-    mutate(date = mdy(as.character(date))) 
-
-unemployment_data_by_state <- read_xlsx("weekly_unemployment_claims.xlsx") %>%
-    clean_names() %>%
-    mutate(date = mdy(as.character(date))) %>%
-    subset(date > "2020-01-05")
-
-# New York ---------------
-
-new_york_covidata <- covidata_us %>%
-    filter(province_state == "New York") %>%
-    group_by(date) %>%
-    summarize(total_cases = sum(cases)) %>%
-    mutate(days = 1:93)
-
-new_york_covidata$deriv_cases = c(diff(new_york_covidata$total_cases) / diff(new_york_covidata$days), NA)
-
-new_york_unemployment <- unemployment_data_by_state %>%
-    filter(province_state == "New York")
-
-
-# National Comparison ------
-
-covidata_us_total <- covidata_us %>%
-    group_by(date) %>%
-    summarize(total_cases = sum(cases)) %>%
-    mutate(days = 1:93)
-
-covidata_us_total$deriv_cases = c(diff(covidata_us_total$total_cases) / diff(covidata_us_total$days), NA)
-
-national_unemployment <- unemployment_data_by_state %>%
-    group_by(date) %>%
-    summarize(total_claims = sum(initial_claims))
-
-
-# Joined Scatterplot -----
-
-joined_data <- covidata_us %>%
-    inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
-    filter(cases > 0) %>%
-    group_by(province_state, date, week, initial_claims) %>%
-    summarize(total_cases = sum(cases)) %>%
-    mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
-
-
-joined_data2 <- covidata_us %>%
-    inner_join(unemployment_data_by_state, by = c("province_state", "date")) %>%
-    filter(cases > 0) %>%
-    group_by(province_state, date, week, initial_claims) %>%
-    summarize(total_cases = sum(cases)) %>%
-    mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
-
-joined_data2$deriv_cases = c(diff(joined_data2$total_cases) / diff(joined_data2$week), NA)
-
-joined_data2 <- joined_data2 %>%
-    mutate(log_deriv_cases = log(deriv_cases))
-
+# -------------------------------------------------------------------------
+# Front-End UI for the Shiny App, this is the aesthetic skeleton of the app
+# Nothing too crazy here, just a few tabs with text and plots on them
+# -------------------------------------------------------------------------
 
 ui <- fluidPage(navbarPage("the Coronavirus Project",
                            
                            theme = shinytheme("paper"),
                            
-                           # First tab, Economy, outputs GDP scatter plot based on checkboxes and line plot based on dropdown selector     
+                           # First tab
                            
-                           tabPanel("National", mainPanel(h4("National Unemployment Claims versus Coronavirus Cases"),
-                                                         h4(" "), 
-                                                         plotOutput("plot_scatter"), 
-                                                         h4("National Unemployment Claims versus Coronavirus Growth"), 
-                                                         h4(" "),
-                                                         plotOutput("plot_scatter_deriv")
+                           tabPanel("National",
+                                    mainPanel(
+                                        h4("National Unemployment Claims versus Coronavirus Cases"),
+                                        h4(" "), 
+                                        plotOutput("plot_scatter"), 
+                                        h4("National Unemployment Claims versus Coronavirus Growth"), 
+                                        h4(" "),
+                                        plotOutput("plot_scatter_deriv")
                            )),
                            
-                           tabPanel("NY State", mainPanel(h4("New York State Unemployment Claims over Time"),
-                                                          h4(" "), 
-                                                          plotOutput("plot_ny1"), 
-                                                          h4("New York State Coronavirus Growth Rate over Time:"), 
-                                                          h4(" "),
-                                                          plotOutput("plot_ny2")
-                           )),
+                           # Second tab
                            
+                           tabPanel("NY State",
+                                    mainPanel(
+                                        h4("New York State Unemployment Claims over Time"),
+                                        h4(" "), 
+                                        plotOutput("plot_ny1"), 
+                                        h4("New York State Coronavirus Growth Rate over Time:"), 
+                                        h4(" "),
+                                        plotOutput("plot_ny2")
+                           )),
 
-                           # Fifth tab, About, contains text about data sources and author 
+                           # Last 'About' tab, contains informaiton about data sources and the author
                            
                            tabPanel("About", 
                                     mainPanel(
@@ -125,16 +69,17 @@ ui <- fluidPage(navbarPage("the Coronavirus Project",
                                         p("If you're interested in learning more about the project or about myself, don't hesistate to reach out through email at mdwu@college.harvard.edu, connect with me on", a("LinkedIn", href = "https://www.linkedin.com/in/michael-d-wu-809522145/"), ", or visit my", a("GitHub Account", href="https://github.com/michaeldwu"), " page. Thanks for visiting!")
                                     ))))
 
-# Define server logic
+# --------------------------------------------------------------
+# Back-end Server Logic for Shiny Apps
+# This is where the "plot_output()" functions of the UI tab call
+# Creates ggplots with the data objects stored in the RDS files
+# --------------------------------------------------------------
 
 server <- function(input, output) {
 
-    
-    # Scatter Plots ----------------------------------------------------------------------------------------------------
-    # Creates GDP scatter plot
+    # Scatter Plots
     
     output$plot_ny1<-renderPlot({
-        
         ggplot(new_york_unemployment, aes(x = date, y = initial_claims)) +
             geom_line() +
             geom_smooth(se = FALSE, span = 0.5) +
@@ -143,13 +88,12 @@ server <- function(input, output) {
                  x = "Date",
                  y = "Case Count") +
             theme_classic()
-        
         },
         height = 400,
-        width = 600)
+        width = 600
+    )
     
     output$plot_ny2<-renderPlot({
-        
         ggplot(new_york_covidata, aes(x = date, y = deriv_cases)) +
             geom_line() +
             geom_smooth(se = FALSE, span = 0.3) +
@@ -158,13 +102,12 @@ server <- function(input, output) {
                  x = "Date",
                  y = "First Derivative of Case Count") +
             theme_classic()
-        
-    },
-    height = 400,
-    width = 600)
+        },
+        height = 400,
+        width = 600
+    )
     
     output$plot_national1<-renderPlot({
-        
         ggplot(national_unemployment, aes(x = date, y = total_claims)) +
             geom_line() +
             geom_smooth(se = FALSE, span = 0.4) +
@@ -173,13 +116,12 @@ server <- function(input, output) {
                  x = "Date",
                  y = "Unemployment Claims") +
             theme_classic()
-        
-    },
-    height = 400,
-    width = 600)
+        },
+        height = 400,
+        width = 600
+    )
     
     output$plot_national2<-renderPlot({
-        
         ggplot(covidata_us_total, aes(x = date, y = deriv_cases)) +
             geom_line() +
             geom_smooth(se = FALSE, span = 0.3) +
@@ -188,14 +130,12 @@ server <- function(input, output) {
                  x = "Date",
                  y = "First Derivative of Case Count") +
             theme_classic()
-        
-    },
-    height = 400,
-    width = 600)
-
+        },
+        height = 400,
+        width = 600
+    )
     
     output$plot_scatter<-renderPlot({
-        
         ggplot(joined_data, aes(x = log_total_cases, y = log_initial_claims, color = date)) +
             geom_point() +
             geom_smooth(method = "loess") +
@@ -207,12 +147,12 @@ server <- function(input, output) {
                 title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
                 subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
             )
-    },
-    height = 400,
-    width = 600)
+        },
+        height = 400,
+        width = 600
+    )
     
     output$plot_scatter_deriv<-renderPlot({
-        
         ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = date)) +
             geom_point() +
             theme_classic() +
@@ -223,14 +163,15 @@ server <- function(input, output) {
                 title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
                 subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
             )
-        
-    },
-    height = 400,
-    width = 600)
-    
-    
+        },
+        height = 400,
+        width = 600
+    )
     
 }
 
-# Run the application 
+# ------------------------------
+# Running the actual application 
+# ------------------------------
+
 shinyApp(ui = ui, server = server)
