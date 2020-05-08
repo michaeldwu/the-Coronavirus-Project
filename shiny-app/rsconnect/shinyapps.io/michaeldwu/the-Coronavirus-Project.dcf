@@ -5,8 +5,8 @@ account: michaeldwu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2186078
-bundleId: 3118110
+bundleId: 3121915
 url: https://michaeldwu.shinyapps.io/the-Coronavirus-Project/
-when: 1588888487.99548
+when: 1588966210.52303
 asMultiple: FALSE
 asStatic: FALSE

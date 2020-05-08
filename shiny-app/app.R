@@ -34,11 +34,19 @@ ui <- navbarPage(
         tabPanel(
             "Home",
              fluidPage(
+                 
+                 
+                 
                  br(),
                  imageOutput("banner_image", width = "100%", height = "100%"),
                  br(),
                  fluidRow(
-                     column(2), column(8,
+                     # Adding some basic CSS styling to the page
+                     
+                     tags$head(tags$style(HTML("h4 {line-height: 1.6; padding-top: 5px; text-align: justify; padding-right: 80px;}"))),
+                     tags$head(tags$style(HTML("h2 {padding-top: 20px; padding-bottom: 0px;}"))),
+                     
+                     column(1), column(10,
                         h2("Background", style = "color: darkred"),
                         h4("Insert some text here"),
                         
@@ -82,6 +90,7 @@ ui <- navbarPage(
         
         tabPanel("About", 
                  fluidPage(
+                     
                      # Adding some basic CSS styling to the page
                      
                     tags$head(tags$style(HTML("a {color: #0000CD}"))),
@@ -91,7 +100,7 @@ ui <- navbarPage(
                     fluidRow(
                         column(1), column(10,
                               h2("Project Description"),
-                              h4("Created for my Gov 1005: Data Science class as our capstone final project.",
+                              h4("Created for my Harvard Gov 1005: Data Science class as our capstone final project.",
                                  ),
                               h2("Acknowledgements"),
                               h4("A huge thank you to the", a("Johns Hopkins University Coronavirus Database",
