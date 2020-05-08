@@ -17,8 +17,8 @@ library(ggthemes)
 
 new_york_unemployment <- readRDS("rdsObjects/new_york_unemployment.rds")
 new_york_covidata <- readRDS("rdsObjects/new_york_covidata.rds")
-national_unemployment <- readRDS("rdsObjects/national_unemployment.rds")
-covidata_us_total <- readRDS("rdsObjects/covidata_us_total.rds")
+# national_unemployment <- readRDS("rdsObjects/national_unemployment.rds")
+# covidata_us_total <- readRDS("rdsObjects/covidata_us_total.rds")
 joined_data <- readRDS("rdsObjects/joined_data.rds")
 joined_data2 <- readRDS("rdsObjects/joined_data2.rds")
 
@@ -27,48 +27,100 @@ joined_data2 <- readRDS("rdsObjects/joined_data2.rds")
 # Nothing too crazy here, just a few tabs with text and plots on them
 # -------------------------------------------------------------------------
 
-ui <- fluidPage(navbarPage("the Coronavirus Project",
-                           
-                           theme = shinytheme("paper"),
-                           
-                           # First tab
-                           
-                           tabPanel("National",
-                                    mainPanel(
-                                        imageOutput("banner_image", width = "100%", height = "100%"),
-                                        h4("National Unemployment Claims versus Coronavirus Cases"),
-                                        h4(" "), 
-                                        plotOutput("plot_scatter"), 
-                                        h4("National Unemployment Claims versus Coronavirus Growth"), 
-                                        h4(" "),
-                                        plotOutput("plot_scatter_deriv")
-                           )),
-                           
-                           # Second tab
-                           
-                           tabPanel("NY State",
-                                    mainPanel(
-                                        h4("New York State Unemployment Claims over Time"),
-                                        h4(" "), 
-                                        plotOutput("plot_ny1"), 
-                                        h4("New York State Coronavirus Growth Rate over Time:"), 
-                                        h4(" "),
-                                        plotOutput("plot_ny2")
-                           )),
-
-                           # Last 'About' tab, contains informaiton about data sources and the author
-                           
-                           tabPanel("About", 
-                                    mainPanel(
-                                        h4("Project Description"),
-                                        p("With the new record levels of unemployment coming out of the US Department of Labor, I figured it would be really interesting to explore how the unemployment claims filed across state vary based on the total number of confirmed cases. I presume that some of the states in the Midwest that have been slower to shut down from the coronavirus will have less claims of unemployment, and I feel like it'd be interesting to see if there's any general correlation."),
-                                        h4("Acknowledgements"),
-                                        p("A huge thank you to the", a("Johns Hopkins University Coronavirus Database", href = "https://github.com/CSSEGISandData/COVID-19"), "for the incredible real-time data that they provide on their university GitHub page for the general public’s use. This work would also have not been possible without the open-source", a("US Department of Labor’s Unemployment Database", href = "https://oui.doleta.gov/unemploy/DataDownloads.asp"), ", updated every week dating back to 1986 for all fifty states."),
-                                        p("I’d also like to give a final thanks to my incredible Teaching Fellow Kaneesha Johnson for helping guide this project throughout its creation and also to the one and only David Kane, Preceptor of Gov 1005 for doing an incredible job acting as the guiding rope to my Ulysses."),
-                                        h4("About Me"),
-                                        p("My name is Michael Wu and I’m currently a second-year student at Harvard College pursuing a B.A. in Computer Science, Class of 2022. I grew up in sunny Orange County, California and am interested in pursuing change through the startup realm. Outside of school/work, I enjoy playing basketball, poker, watching movies, running, and doing yoga."),
-                                        p("If you're interested in learning more about the project or about myself, don't hesistate to reach out through email at mdwu@college.harvard.edu, connect with me on", a("LinkedIn", href = "https://www.linkedin.com/in/michael-d-wu-809522145/"), ", or visit my", a("GitHub Account", href="https://github.com/michaeldwu"), " page. Thanks for visiting!")
-                                    ))))
+ui <- navbarPage(
+        title = "the Coronavirus Project",
+        theme = shinytheme("sandstone"),
+        
+        tabPanel(
+            "Home",
+             fluidPage(
+                 br(),
+                 imageOutput("banner_image", width = "100%", height = "100%"),
+                 br(),
+                 fluidRow(
+                     column(2), column(8,
+                        h2("Background", style = "color: darkred"),
+                        h4("Insert some text here"),
+                        
+                        h2("Hypothesis", style = "color: darkred"),
+                        h4("Insert some text here"),
+                        
+                        h2("Findings", style = "color: darkred"),
+                        h4("Insert some text here"),
+                        
+                        br(), br(), br()
+                    )
+                )
+        )),
+                          
+        # Second tab
+           
+        tabPanel(
+            "National",
+            fluidPage(
+                    h4("National Unemployment Claims versus Coronavirus Cases"),
+                    h4(" "), 
+                    plotOutput("plot_scatter"), 
+                    h4("National Unemployment Claims versus Coronavirus Growth"), 
+                    h4(" "),
+                    plotOutput("plot_scatter_deriv")
+        )),
+        
+        # Third tab
+        
+        tabPanel("NY State",
+                 fluidPage(
+                    h4("New York State Unemployment Claims over Time"),
+                    h4(" "), 
+                    plotOutput("plot_ny1"), 
+                    h4("New York State Coronavirus Growth Rate over Time:"), 
+                    h4(" "),
+                    plotOutput("plot_ny2")
+        )),
+        
+        # Last 'About' tab, contains informaiton about data sources and the author
+        
+        tabPanel("About", 
+                 fluidPage(
+                     # Adding some basic CSS styling to the page
+                     
+                    tags$head(tags$style(HTML("a {color: #0000CD}"))),
+                    tags$head(tags$style(HTML("h4 {line-height: 1.6; padding-top: 5px; text-align: justify; padding-left: 20px; padding-right: 20px;}"))),
+                    tags$head(tags$style(HTML("h2 {padding-left: 20px; padding-right: 20px; padding-top: 20px; padding-bottom: 0px;}"))),
+                    
+                    fluidRow(
+                        column(1), column(10,
+                              h2("Project Description"),
+                              h4("Created for my Gov 1005: Data Science class as our capstone final project.",
+                                 ),
+                              h2("Acknowledgements"),
+                              h4("A huge thank you to the", a("Johns Hopkins University Coronavirus Database",
+                                 href = "https://github.com/CSSEGISandData/COVID-19"), "for the incredible real-time data
+                                 that they provide on their university GitHub page for the general public’s use. This work
+                                 would also have not been possible without the open-source", a("US Department of Labor’s
+                                 Unemployment Database", href = "https://oui.doleta.gov/unemploy/DataDownloads.asp"), ", 
+                                 updated every week dating back to 1986 for all fifty states."),
+                              h4("I’d also like to give a final thanks to my incredible Teaching Fellow Kaneesha Johnson
+                                 for helping guide this project throughout its creation and also to the one and only
+                                 David Kane, Preceptor of Gov 1005 for doing an incredible job acting as the guiding 
+                                 rope to my Ulysses."),
+                              h2("About the Creator"),
+                              h4("My name is Michael Wu and I created this as a second-year student at Harvard College as a member of the class of 2022.
+                                 Currently, I am pursuing a B.A. degree in Computer Science. I've built a number of websites in the past but this is 
+                                 my first experience working with Shiny as the web hosting framework and R as the back-end.
+                                 I grew up in sunny Orange County, California and enjoy
+                                 playing basketball, poker, the TV show Suits, running, and doing yoga."),
+                              h4("If you're interested in learning more about the project or about myself, don't hesistate
+                                 to reach out through email at mdwu@college.harvard.edu, connect with me on",
+                                 a("LinkedIn", href = "https://www.linkedin.com/in/michael-d-wu-809522145/"), 
+                                 ", or visit my", a("GitHub Account", href="https://github.com/michaeldwu"), " page.
+                                 Thanks for visiting!"),
+                                          
+                              br(), br(), br()
+                        )
+                    )
+                    
+                    )))
 
 # --------------------------------------------------------------
 # Back-end Server Logic for Shiny Apps
@@ -81,19 +133,10 @@ server <- function(input, output, session) {
     # Coronavirus Banner Image
     
     output$banner_image <- renderImage({
-        # Read myImage's width and height. These are reactive values, so this
-        # expression will re-run whenever they change.
-        screen_width  <- session$clientData$output_myImage_width
-        screen_height <- session$clientData$output_myImage_height
-       
-        picture_ratio <- 7.5/19.762
-         
         list(src = './images/corona-banner.png', 
-             height = screen_width * 0.7 * picture_ratio,
-             width = screen_width * 0.7,
-             style = "display: center; margin-left: auto; margin-right: auto;")}, 
-        deleteFile = FALSE
-    )
+             width = "80%",
+             style = "display: block; margin-left: auto; margin-right: auto;")}, 
+        deleteFile = FALSE)
 
     # Scatter Plots
     
@@ -116,34 +159,6 @@ server <- function(input, output, session) {
             geom_line() +
             geom_smooth(se = FALSE, span = 0.3) +
             labs(title = "Growth of Covid-19 Cases in New York State",
-                 subtitle = "As of April 24th",
-                 x = "Date",
-                 y = "First Derivative of Case Count") +
-            theme_classic()
-        },
-        height = 400,
-        width = 600
-    )
-    
-    output$plot_national1<-renderPlot({
-        ggplot(national_unemployment, aes(x = date, y = total_claims)) +
-            geom_line() +
-            geom_smooth(se = FALSE, span = 0.4) +
-            labs(title = "National Unemployment Filings",
-                 subtitle = "As of April 24th",
-                 x = "Date",
-                 y = "Unemployment Claims") +
-            theme_classic()
-        },
-        height = 400,
-        width = 600
-    )
-    
-    output$plot_national2<-renderPlot({
-        ggplot(covidata_us_total, aes(x = date, y = deriv_cases)) +
-            geom_line() +
-            geom_smooth(se = FALSE, span = 0.3) +
-            labs(title = "Growth Curve of National Covid-19 Cases",
                  subtitle = "As of April 24th",
                  x = "Date",
                  y = "First Derivative of Case Count") +

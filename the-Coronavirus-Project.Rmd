@@ -8,7 +8,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(reprex)
 library(janitor)
 library(gt)
 library(readr)
@@ -109,6 +108,52 @@ ggplot(new_york_covidata, aes(x = date, y = total_cases)) +
   
 ```
 
+```{r plot-arkansas-covidata, fig.align='center', echo = FALSE}
+# Find the most affected states in the United States
+# Would use log scales like in China's case below, but the case reporting is so erratic
+# that the graphs for log scales on the y-axis looks so poor.
+# NEED TO: do some basic data cleanup because the graph displays all the county-wide 
+# confirmed case counts instead of the totals for the state
+
+arkansas_covidata <- covidata_us %>%
+  filter(province_state == "North Dakota") %>%
+  group_by(date) %>%
+  summarize(total_cases = sum(cases)) %>%
+  mutate(days = 1:93)
+
+arkansas_covidata$deriv_cases = c(diff(arkansas_covidata$total_cases) / diff(arkansas_covidata$days), NA)
+
+arkansas_unemployment <- unemployment_data_by_state %>%
+  filter(province_state == "North Dakota")
+
+ggplot(arkansas_unemployment, aes(x = date, y = initial_claims)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.5) +
+  labs(title = "Weekly Unemployment Filings in Arkansas State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "Case Count") +
+  theme_classic()
+
+ggplot(arkansas_covidata, aes(x = date, y = deriv_cases)) +
+  geom_line() +
+  geom_smooth(se = FALSE, span = 0.3) +
+  labs(title = "Growth of Covid-19 Cases in Arkansas State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "First Derivative of Case Count") +
+  theme_classic()
+
+ggplot(arkansas_covidata, aes(x = date, y = total_cases)) +
+  geom_line() +
+  labs(title = "Total Covid-19 Cases in Arkansas State",
+       subtitle = "As of April 24th",
+       x = "Date",
+       y = "First Derivative of Case Count") +
+  theme_classic()
+  
+```
+
 
 ```{r plot-US-covidata, fig.align='center', echo = FALSE}
 # Find the most affected states in the United States
@@ -189,17 +234,125 @@ ggplot(joined_data, aes(x = log_total_cases, y = log_initial_claims, color = dat
   )
 ```
 
+```{r scatter-plot-unemployment-covid-shutdown-early, echo=FALSE, fig.align='center'}
+
+x1 <- covidata_us %>%
+  filter(province_state %in% c("New York", "California", "Washington", "Oregon", "Illinois", "Louisiana", "Ohio", "New Jersey", "Connecticut"))
+
+x2 <- unemployment_data_by_state %>%
+  filter(province_state %in% c("New York", "California", "Washington", "Oregon", "Illinois", "Louisiana", "Ohio", "New Jersey", "Connecticut"))
+
+joined_data3 <- x1 %>%
+  inner_join(x2, by = c("province_state", "date")) %>%
+  group_by(province_state, date, week, initial_claims) %>%
+  summarize(total_cases = sum(cases)) %>%
+  filter(total_cases > 0) %>%
+  mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
+
+ggplot(joined_data3, aes(x = total_cases, y = initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "Coronavirus Cases",
+    y = "Weekly Unemployment Claims",
+    color = "Month",
+    title = "Early Shutdown Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across 9 States, appears to show a strong positive correlation"
+  )
+
+ggplot(joined_data3, aes(x = log_total_cases, y = log_initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "Natural Log of Coronavirus Cases",
+    y = "Natural Log of Weekly Unemployment Claims",
+    color = "Month",
+    title = "Early Shutdown Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across 9 States, appears to show a strong positive correlation"
+  )
+```
+
+```{r scatter-plot-unemployment-covid-shutdown-early, echo=FALSE, fig.align='center'}
+
+x3 <- covidata_us %>%
+  filter(province_state %in% c("North Dakota", "South Dakota", "Nebraska", "Iowa", "Wyoming", "Utah", "Oklahoma", "Arkansas"))
+
+x4 <- unemployment_data_by_state %>%
+  filter(province_state %in% c("North Dakota", "South Dakota", "Nebraska", "Iowa", "Wyoming", "Utah", "Oklahoma", "Arkansas"))
+
+joined_data4 <- x3 %>%
+  inner_join(x4, by = c("province_state", "date")) %>%
+  group_by(province_state, date, week, initial_claims) %>%
+  summarize(total_cases = sum(cases)) %>%
+  filter(total_cases > 0) %>%
+  mutate(log_total_cases = log(total_cases), log_initial_claims = log(initial_claims))
+
+ggplot(joined_data4, aes(x = total_cases, y = initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "Coronavirus Cases",
+    y = "Weekly Unemployment Claims",
+    color = "Month",
+    title = "No Shutdown Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across 8 States, does not appear to show correlation"
+  )
+
+ggplot(joined_data4, aes(x = log_total_cases, y = log_initial_claims, color = date)) +
+  geom_point() +
+  theme_classic() +
+  labs(
+    x = "Natural Log of Coronavirus Cases",
+    y = "Natural Log of Weekly Unemployment Claims",
+    color = "Month",
+    title = "No Shutdown Unemployment Claims per Week versus Total Coronavirus Cases",
+    subtitle = "Grouped across 8 States, does not appear to show correlation"
+  )
+```
+
+```{r correlating-data, echo=FALSE, fig.align='center'}
+# First, completing the correlation summary
+
+joined_data4 %>%
+  filter(date > "2020-03-01") %>%
+  group_by(date) %>%
+  summarise(correlation = cor(total_cases, initial_claims)) %>%
+  gt() %>%
+  tab_header(
+    title = "Coronavirus Case Count on Weekly Unemployment Claims",
+    subtitle = "Arranged by Date"
+  ) %>%
+  cols_label(
+    date = "Date",
+    correlation = "Correlation Coefficient"
+  )
+
+joined_data3 %>%
+  filter(date > "2020-02-28") %>%
+  group_by(date) %>%
+  summarise(correlation = cor(total_cases, initial_claims)) %>%
+  gt() %>%
+  tab_header(
+    title = "Coronavirus Case Count on Weekly Unemployment Claims",
+    subtitle = "Arranged by Date"
+  ) %>%
+  cols_label(
+    date = "Date",
+    correlation = "Correlation Coefficient"
+  )
+```
+
 ```{r correlating-data, echo=FALSE, fig.align='center'}
 # First, completing the correlation summary
 
 joined_data %>%
   filter(date > "2020-03-01") %>%
   group_by(date) %>%
-  summarise(correlation = cor(log_total_cases, log_initial_claims)) %>%
+  summarise(correlation = cor(total_cases, initial_claims)) %>%
   gt() %>%
   tab_header(
     title = "Coronavirus Case Count on Weekly Unemployment Claims",
-    subtitle = "Natural Log Values, Arranged by Date"
+    subtitle = "Arranged by Date"
   ) %>%
   cols_label(
     date = "Date",
