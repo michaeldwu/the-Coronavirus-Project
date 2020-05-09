@@ -71,8 +71,9 @@ covidata_us <- untidy_covidata_us %>%
 new_york_covidata <- covidata_us %>%
   filter(province_state == "New York") %>%
   group_by(date) %>%
+  filter(date < "2020-05-03") %>%
   summarize(total_cases = sum(cases)) %>%
-  mutate(days = 1:107)
+  mutate(days = 1:102)
 
 new_york_covidata$deriv_cases = c(diff(new_york_covidata$total_cases) / diff(new_york_covidata$days), NA)
 
@@ -300,14 +301,14 @@ joined_data3 %>%
 ```{r correlating-data, echo=FALSE, fig.align='center'}
 # First, completing the correlation summary
 
-joined_data %>%
+joined_table1 <- joined_data %>%
   filter(date > "2020-03-01") %>%
   group_by(date) %>%
   summarise(correlation = cor(total_cases, initial_claims)) %>%
   gt() %>%
   tab_header(
-    title = "Coronavirus Case Count on Weekly Unemployment Claims",
-    subtitle = "Arranged by Date"
+    title = "Total Case Count on Weekly Unemployment Claims",
+    subtitle = "All fifty states, used log values for correlation"
   ) %>%
   cols_label(
     date = "Date",
@@ -355,21 +356,26 @@ ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = da
 ```{r correlating-data-2, echo=FALSE, fig.align='center'}
 # First, completing the correlation summary
 
-joined_data2 %>%
-  filter(date > "2020-03-01" & date != "2020-04-18") %>%
+joined_table2 <- joined_data2 %>%
+  filter(date > "2020-03-01" & date != "2020-05-02") %>%
   group_by(date) %>%
   summarise(correlation = cor(log_deriv_cases, log_initial_claims)) %>%
   gt() %>%
   tab_header(
     title = "Coronavirus Growth Rate on Weekly Unemployment Claims",
-    subtitle = "Arranged by Date"
+    subtitle = "All fifty states, used log values for correlation"
   ) %>%
   cols_label(
     date = "Date",
     correlation = "Correlation Coefficient"
+  ) %>%
+  tab_footnote(
+    footnote = "Week of 05-02-2020 excluded, growth rate nonexistent and thus coefficient cannot be determined",
+    locations = cells_column_labels(
+      columns = vars(date))
   )
 
-joined_data2 %>%
+average_corr2 <- joined_data2 %>%
   filter(date > "2020-03-01" & date != "2020-04-18") %>%
   group_by(date) %>%
   summarise(correlation = cor(log_deriv_cases, log_initial_claims)) %>%
@@ -386,7 +392,8 @@ saveRDS(national_unemployment, file = "shiny-app/rdsObjects/national_unemploymen
 saveRDS(covidata_us_total, file = "shiny-app/rdsObjects/covidata_us_total.rds")
 saveRDS(joined_data, file = "shiny-app/rdsObjects/joined_data.rds")
 saveRDS(joined_data2, file = "shiny-app/rdsObjects/joined_data2.rds")
-
+gtsave(joined_table1, filename = "joined_table1.html")
+gtsave(joined_table2, filename = "joined_table2.html")
 
 ```
 

@@ -9,6 +9,8 @@ library(shiny)
 library(tidyverse)
 library(shinythemes)
 library(ggthemes)
+library(plotly)
+library(Cairo)
 
 # ------------------------------------------------------------
 # Loading the RDS data objects that were saved in my rmd files
@@ -46,14 +48,36 @@ ui <- navbarPage(
                  fluidRow(
                      column(1), column(10,
                         h2("Background", style = "color: darkred"),
-                        h4("Since the United States government starting tracking the metric in January of 1948, we have never experienced a larger single month jump in the unemployment rate than the past month of April 2020. The 10.3% month-over-month increase brings the official unemployment level to 14.7%, a rate that we have not experienced since the peak of the Great Depression – even worse, most academics theorize that the effective unemployment rate of those who have been furloughed and laid off exceeds 20%. In the past seven weeks, 33 million Americans have filed for unemployment benefits."),
-                        h4("These unprecedented economic hardships but one origin in the COVID-19 pandemic. With businesses shut down and people mandated to stay at home, economic activity has all but ground to a halt. Looking forward though, the most critical questions for our economic recovery remain unclear. How long will this recession last? How much worse will things get?"),
+                        h4("Since the United States government starting tracking the metric in January of 1948,
+                           we have never experienced a larger single month jump in the unemployment rate than the
+                           past month of April 2020. The 10.3% month-over-month increase brings the official
+                           unemployment level to 14.7%, a rate that we have not experienced since the peak of
+                           the Great Depression – even worse, most academics theorize that the effective unemployment
+                           rate of those who have been furloughed and laid off exceeds 20%. In the past seven weeks,
+                           33 million Americans have filed for unemployment benefits."),
+                        h4("These unprecedented economic hardships but one origin in the COVID-19 pandemic. With 
+                           businesses shut down and people mandated to stay at home, economic activity has all but 
+                           ground to a halt. Looking forward though, the most critical questions for our economic 
+                           recovery remain unclear. How long will this recession last? How much worse will things get?"),
                         
                         h2("Project Objectives", style = "color: darkred"),
-                        h4("The answer to these questions can only be uncovered with time, but it’s the objective of this project to help contextualize what we’ve been seeing in the unemployment rate and the COVID-19 pandemic with respect to data. This project sets out to explore the effects of the daily reported coronavirus cases on the weekly unemployment claims filed across all fifty states, searching for strong signs of positive correlation between the two sets of data. The hope for this project is to be able to uncover a better understanding of what’s driving the historic rise in unemployment rates across the nation."),
+                        h4("The answer to these questions can only be uncovered with time, but it’s the objective
+                           of this project to help contextualize what we’ve been seeing in the unemployment rate 
+                           and the COVID-19 pandemic with respect to data. This project sets out to explore the 
+                           effects of the daily reported coronavirus cases on the weekly unemployment claims filed 
+                           across all fifty states, searching for strong signs of positive correlation between the 
+                           two sets of data. The hope for this project is to be able to uncover a better understanding 
+                           of what’s driving the historic rise in unemployment rates across the nation."),
                         
                         h2("Findings", style = "color: darkred"),
-                        h4("Put simply, we were able to find a strong positive correlation of 0.8276 between the number of new daily coronavirus cases and the number of weekly unemployment claims filed for that week, across the fifty states we studied over the course of the past three months since the start of the outbreak. What’s especially important to note is that as the growth rate of new coronavirus cases has slowed in the second half of April, new weekly unemployment claim filing has accordingly slowed as well. This is an encouraging sign for the economic optimists of the world, supporting the notion that controlling the coronavirus pandemic is the key to preventing unemployment (and the rest of the economy) from spiraling out of control."),
+                        h4("Put simply, we were able to find a strong positive correlation of 0.8276 between the number 
+                           of new daily coronavirus cases and the number of weekly unemployment claims filed for that 
+                           week, across the fifty states we studied over the course of the past three months since the 
+                           start of the outbreak. What’s especially important to note is that as the growth rate of new 
+                           coronavirus cases has slowed in the second half of April, new weekly unemployment claim filing 
+                           has accordingly slowed as well. This is an encouraging sign for the economic optimists of the 
+                           world, supporting the notion that controlling the coronavirus pandemic is the key to preventing 
+                           unemployment (and the rest of the economy) from spiraling out of control."),
                         
                         br(), br(), br()
                     )
@@ -65,24 +89,50 @@ ui <- navbarPage(
         tabPanel(
             "National",
             fluidPage(
-                    h2("National Unemployment Claims versus Coronavirus Cases"),
+                
+                    h2("Strong Positive Correlation between Unemployment Claims and Coronavirus Case Count / Coronavirus Rate of Growth on the National Level",
+                       style = "text-align: center; margin-left: 40px; margin-right: 40px; line-height: 1.4;"),
+                    h4("Hover over for more details about what each point means!", style = "text-align: center;"),
                     br(), 
-                    plotOutput("plot_scatter"), 
-                    h2("National Unemployment Claims versus Coronavirus Growth"), 
+                    fluidRow(
+                        column(1),
+                        column(5, plotlyOutput("plot_scatter", width='100%')),
+                        column(5, plotlyOutput("plot_scatter_deriv", width='100%'))
+                    ),
                     br(),
-                    plotOutput("plot_scatter_deriv")
+                    h4("Displayed above are the two most central plots to this project. On the left hand side displays the 
+                       number of new unemployment claims filed by residents of all fifty states over the span of 12 weeks 
+                       (this number is not cumulative) plotted with respect to the total number of confirmed COVID-19 cases 
+                       (cumulative). In contrast, the right hand side graph displays the unemployment claims plotted against 
+                       the growth of rate of the confirmed COVID-19 cases. Both show a strong positive correlation, although 
+                       the slope appears to be steeper on the right hand graph.",
+                       style = "margin-left: 40px; margin-right: 40px;"),
+                    h4("Note: both of these graphs are displayed in log scale for the viewer’s ease. The normal linear scale 
+                       graph has a fair number of extremes representing states like New York and California with high populations, 
+                       while still displaying a definitive positive correlation and thus presenting the data in log-scale seems preferable.",
+                       style = "margin-left: 40px; margin-right: 40px;"),
+                    br(),
+                    fluidRow(
+                        column(1),
+                        column(5, includeHTML("gtTables/joined_table1.html")),
+                        column(5, includeHTML("gtTables/joined_table2.html"))
+                    ),
+                    
+                    br(), br()
         )),
         
         # Third tab
         
-        tabPanel("NY State",
+        tabPanel("State by State",
                  fluidPage(
-                    h4("New York State Unemployment Claims over Time"),
-                    h4(" "), 
-                    plotOutput("plot_ny1"), 
-                    h4("New York State Coronavirus Growth Rate over Time:"), 
-                    h4(" "),
-                    plotOutput("plot_ny2")
+                     h2("Case Study: New York State Unemployment Claims vs Rate Coronavirus Growth",
+                        style = "text-align: center; margin-left: 40px; margin-right: 40px; line-height: 1.4;"),
+                     br(), 
+                     fluidRow(
+                         column(1),
+                         column(5, plotOutput("plot_ny1")),
+                         column(5, plotOutput("plot_ny2"))
+                     ),
         )),
         
         # Last 'About' tab, contains informaiton about data sources and the author
@@ -153,13 +203,13 @@ server <- function(input, output, session) {
             geom_line() +
             geom_smooth(se = FALSE, span = 0.5) +
             labs(title = "Weekly Unemployment Filings in New York State",
-                 subtitle = "As of April 24th",
+                 subtitle = "Data as of May 2nd",
                  x = "Date",
                  y = "Case Count") +
             theme_classic()
         },
         height = 400,
-        width = 600
+        width = 550
     )
     
     output$plot_ny2<-renderPlot({
@@ -167,46 +217,41 @@ server <- function(input, output, session) {
             geom_line() +
             geom_smooth(se = FALSE, span = 0.3) +
             labs(title = "Growth of Covid-19 Cases in New York State",
-                 subtitle = "As of April 24th",
+                 subtitle = "Data as of May 8th",
                  x = "Date",
                  y = "First Derivative of Case Count") +
             theme_classic()
         },
         height = 400,
-        width = 600
+        width = 550
     )
     
-    output$plot_scatter<-renderPlot({
-        ggplot(joined_data, aes(x = log_total_cases, y = log_initial_claims, color = date)) +
-            geom_point() +
-            geom_smooth(method = "loess") +
-            theme_classic() +
-            labs(
-                x = "Natural Log of Coronavirus Cases",
-                y = "Natural Log of Weekly Unemployment Claims",
-                color = "Month",
-                title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
-                subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
-            )
-        },
-        height = 400,
-        width = 600
-    )
-    
-    output$plot_scatter_deriv<-renderPlot({
-        ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = date)) +
+    output$plot_scatter<-renderPlotly({
+        ggplot(joined_data, aes(x = log_total_cases, y = log_initial_claims, color = date, text = paste("State:", province_state))) +
             geom_point() +
             theme_classic() +
             labs(
-                x = "Natural Log of First Derivative of Coronavirus Cases (Effective Growth Rate)",
-                y = "Natural Log Weekly Unemployment Claims",
+                x = "Coronavirus Cases (Log)",
+                y = "Weekly Unemployment Claims (Log)",
                 color = "Month",
-                title = "National Unemployment Claims per Week versus Total Coronavirus Cases",
+                title = "Unemployment Claims vs Total COVID Cases",
                 subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
             )
-        },
-        height = 400,
-        width = 600
+        }
+    )
+    
+    output$plot_scatter_deriv<-renderPlotly({
+        ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = date, text = paste("State:", province_state))) +
+            geom_point() +
+            theme_classic() +
+            labs(
+                x = "COVID Effective Growth Rate (Log)",
+                y = "Weekly Unemployment Claims (Log)",
+                color = "Month",
+                title = "Unemployment Claims vs COVID Growth Rate",
+                subtitle = "Grouped across all 50 States, appears to show a strong positive correlation"
+            )
+        }
     )
     
 }
