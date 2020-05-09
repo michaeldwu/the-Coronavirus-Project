@@ -32,29 +32,28 @@ ui <- navbarPage(
         theme = shinytheme("sandstone"),
         
         tabPanel(
-            "Home",
+            "Abstract",
              fluidPage(
                  
+                 # Adding some basic CSS styling to the page
                  
+                 tags$head(tags$style(HTML("h4 {line-height: 1.6; padding-top: 5px; text-align: justify;}"))),
+                 tags$head(tags$style(HTML("h2 {padding-top: 10px; padding-bottom: 0px;}"))),
                  
                  br(),
                  imageOutput("banner_image", width = "100%", height = "100%"),
                  br(),
                  fluidRow(
-                     # Adding some basic CSS styling to the page
-                     
-                     tags$head(tags$style(HTML("h4 {line-height: 1.6; padding-top: 5px; text-align: justify; padding-right: 80px;}"))),
-                     tags$head(tags$style(HTML("h2 {padding-top: 20px; padding-bottom: 0px;}"))),
-                     
                      column(1), column(10,
                         h2("Background", style = "color: darkred"),
-                        h4("Insert some text here"),
+                        h4("Since the United States government starting tracking the metric in January of 1948, we have never experienced a larger single month jump in the unemployment rate than the past month of April 2020. The 10.3% month-over-month increase brings the official unemployment level to 14.7%, a rate that we have not experienced since the peak of the Great Depression – even worse, most academics theorize that the effective unemployment rate of those who have been furloughed and laid off exceeds 20%. In the past seven weeks, 33 million Americans have filed for unemployment benefits."),
+                        h4("These unprecedented economic hardships but one origin in the COVID-19 pandemic. With businesses shut down and people mandated to stay at home, economic activity has all but ground to a halt. Looking forward though, the most critical questions for our economic recovery remain unclear. How long will this recession last? How much worse will things get?"),
                         
-                        h2("Hypothesis", style = "color: darkred"),
-                        h4("Insert some text here"),
+                        h2("Project Objectives", style = "color: darkred"),
+                        h4("The answer to these questions can only be uncovered with time, but it’s the objective of this project to help contextualize what we’ve been seeing in the unemployment rate and the COVID-19 pandemic with respect to data. This project sets out to explore the effects of the daily reported coronavirus cases on the weekly unemployment claims filed across all fifty states, searching for strong signs of positive correlation between the two sets of data. The hope for this project is to be able to uncover a better understanding of what’s driving the historic rise in unemployment rates across the nation."),
                         
                         h2("Findings", style = "color: darkred"),
-                        h4("Insert some text here"),
+                        h4("Put simply, we were able to find a strong positive correlation of 0.8276 between the number of new daily coronavirus cases and the number of weekly unemployment claims filed for that week, across the fifty states we studied over the course of the past three months since the start of the outbreak. What’s especially important to note is that as the growth rate of new coronavirus cases has slowed in the second half of April, new weekly unemployment claim filing has accordingly slowed as well. This is an encouraging sign for the economic optimists of the world, supporting the notion that controlling the coronavirus pandemic is the key to preventing unemployment (and the rest of the economy) from spiraling out of control."),
                         
                         br(), br(), br()
                     )
@@ -66,11 +65,11 @@ ui <- navbarPage(
         tabPanel(
             "National",
             fluidPage(
-                    h4("National Unemployment Claims versus Coronavirus Cases"),
-                    h4(" "), 
+                    h2("National Unemployment Claims versus Coronavirus Cases"),
+                    br(), 
                     plotOutput("plot_scatter"), 
-                    h4("National Unemployment Claims versus Coronavirus Growth"), 
-                    h4(" "),
+                    h2("National Unemployment Claims versus Coronavirus Growth"), 
+                    br(),
                     plotOutput("plot_scatter_deriv")
         )),
         
@@ -88,7 +87,7 @@ ui <- navbarPage(
         
         # Last 'About' tab, contains informaiton about data sources and the author
         
-        tabPanel("About", 
+        tabPanel("More", 
                  fluidPage(
                      
                      # Adding some basic CSS styling to the page
@@ -100,16 +99,16 @@ ui <- navbarPage(
                     fluidRow(
                         column(1), column(10,
                               h2("Project Description"),
-                              h4("Created for my Harvard Gov 1005: Data Science class as our capstone final project.",
+                              h4("Created as the capstone project for my Harvard Gov 1005 data science class.",
                                  ),
                               h2("Acknowledgements"),
-                              h4("A huge thank you to the", a("Johns Hopkins University Coronavirus Database",
+                              h4("I'd like to extend my gratitude towards the", a("Johns Hopkins University Coronavirus Database",
                                  href = "https://github.com/CSSEGISandData/COVID-19"), "for the incredible real-time data
-                                 that they provide on their university GitHub page for the general public’s use. This work
-                                 would also have not been possible without the open-source", a("US Department of Labor’s
+                                 that they provide on their university GitHub page for the general public’s use. Furthermore, this work
+                                 would not have been possible without the open-source", a("US Department of Labor’s
                                  Unemployment Database", href = "https://oui.doleta.gov/unemploy/DataDownloads.asp"), ", 
                                  updated every week dating back to 1986 for all fifty states."),
-                              h4("I’d also like to give a final thanks to my incredible Teaching Fellow Kaneesha Johnson
+                              h4("I’d also like to thank to my incredible Teaching Fellow Kaneesha Johnson
                                  for helping guide this project throughout its creation and also to the one and only
                                  David Kane, Preceptor of Gov 1005 for doing an incredible job acting as the guiding 
                                  rope to my Ulysses."),
@@ -123,9 +122,9 @@ ui <- navbarPage(
                                  to reach out through email at mdwu@college.harvard.edu, connect with me on",
                                  a("LinkedIn", href = "https://www.linkedin.com/in/michael-d-wu-809522145/"), 
                                  ", or visit my", a("GitHub Account", href="https://github.com/michaeldwu"), " page.
-                                 Thanks for visiting!"),
+                                 Thank you for visiting!"),
                                           
-                              br(), br(), br()
+                              br(), br()
                         )
                     )
                     

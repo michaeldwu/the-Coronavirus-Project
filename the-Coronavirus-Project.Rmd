@@ -33,8 +33,7 @@ untidy_covidata_us <- read.csv('raw-data/JH-covid19-rawdata/time_series_covid19_
 
 unemployment_data_by_state <- read_xlsx("raw-data/DOL-unemployment-rawdata/weekly_unemployment_claims.xlsx") %>%
   clean_names() %>%
-  mutate(date = mdy(as.character(date))) %>%
-  subset(date > "2020-01-05")
+  mutate(date = mdy(as.character(date)))
 
 ```
 
@@ -73,7 +72,7 @@ new_york_covidata <- covidata_us %>%
   filter(province_state == "New York") %>%
   group_by(date) %>%
   summarize(total_cases = sum(cases)) %>%
-  mutate(days = 1:93)
+  mutate(days = 1:107)
 
 new_york_covidata$deriv_cases = c(diff(new_york_covidata$total_cases) / diff(new_york_covidata$days), NA)
 
@@ -119,7 +118,7 @@ arkansas_covidata <- covidata_us %>%
   filter(province_state == "North Dakota") %>%
   group_by(date) %>%
   summarize(total_cases = sum(cases)) %>%
-  mutate(days = 1:93)
+  mutate(days = 1:107)
 
 arkansas_covidata$deriv_cases = c(diff(arkansas_covidata$total_cases) / diff(arkansas_covidata$days), NA)
 
@@ -155,51 +154,7 @@ ggplot(arkansas_covidata, aes(x = date, y = total_cases)) +
 ```
 
 
-```{r plot-US-covidata, fig.align='center', echo = FALSE}
-# Find the most affected states in the United States
-# Would use log scales like in China's case below, but the case reporting is so erratic
-# that the graphs for log scales on the y-axis looks so poor.
-# NEED TO: do some basic data cleanup because the graph displays all the county-wide 
-# confirmed case counts instead of the totals for the state
 
-covidata_us_total <- covidata_us %>%
-  group_by(date) %>%
-  summarize(total_cases = sum(cases)) %>%
-  mutate(days = 1:93)
-
-covidata_us_total$deriv_cases = c(diff(covidata_us_total$total_cases) / diff(covidata_us_total$days), NA)
-
-national_unemployment <- unemployment_data_by_state %>%
-  group_by(date) %>%
-  summarize(total_claims = sum(initial_claims))
-
-ggplot(national_unemployment, aes(x = date, y = total_claims)) +
-  geom_line() +
-  geom_smooth(se = FALSE, span = 0.4) +
-  labs(title = "National Unemployment Filings",
-       subtitle = "As of April 24th",
-       x = "Date",
-       y = "Unemployment Claims") +
-  theme_classic()
-
-ggplot(covidata_us_total, aes(x = date, y = deriv_cases)) +
-  geom_line() +
-  geom_smooth(se = FALSE, span = 0.3) +
-  labs(title = "Growth Curve of National Covid-19 Cases",
-       subtitle = "As of April 24th",
-       x = "Date",
-       y = "First Derivative of Case Count") +
-  theme_classic()
-
-ggplot(covidata_us_total, aes(x = date, y = total_cases)) +
-  geom_line() +
-  labs(title = "Total Covid-19 Cases in US",
-       subtitle = "As of April 24th",
-       x = "Date",
-       y = "Total Cases") +
-  theme_classic()
-  
-```
 
 ```{r scatter-plot-unemployment-covid, echo=FALSE, fig.align='center'}
 
@@ -401,7 +356,7 @@ ggplot(joined_data2, aes(x = log_deriv_cases, y = log_initial_claims, color = da
 # First, completing the correlation summary
 
 joined_data2 %>%
-  filter(date > "2020-03-01" & date < "2020-04-18") %>%
+  filter(date > "2020-03-01" & date != "2020-04-18") %>%
   group_by(date) %>%
   summarise(correlation = cor(log_deriv_cases, log_initial_claims)) %>%
   gt() %>%
@@ -413,6 +368,12 @@ joined_data2 %>%
     date = "Date",
     correlation = "Correlation Coefficient"
   )
+
+joined_data2 %>%
+  filter(date > "2020-03-01" & date != "2020-04-18") %>%
+  group_by(date) %>%
+  summarise(correlation = cor(log_deriv_cases, log_initial_claims)) %>%
+  summarise(average = mean(correlation))
 ```
 
 
