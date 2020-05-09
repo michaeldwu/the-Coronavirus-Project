@@ -117,7 +117,11 @@ ui <- navbarPage(
                         column(5, includeHTML("gtTables/joined_table1.html")),
                         column(5, includeHTML("gtTables/joined_table2.html"))
                     ),
-                    
+                    h4("What’s interesting to note is that the correlation coefficients are much stronger for the coronavirus growth 
+                       rate compared to the cumulative coronavirus count. Intuitively this makes sense given how the unemployment 
+                       claims are not cumulative numbers are would react likely more towards the growth rate of coronavirus cases compared 
+                       to a cumulative metric like the total case count.",
+                       style = "margin-left: 40px; margin-right: 40px;"),
                     br(), br()
         )),
         
